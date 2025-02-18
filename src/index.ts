@@ -11,6 +11,10 @@ app.use(express.json())
 
 app.use('/api', rootRouter);
 
+app.get("/",(req,res)=>{
+    res.status(200).send("Haritha Weli backend");
+  })
+
 export const prismaClient = new PrismaClient({
     log:['query']
 }).$extends({
