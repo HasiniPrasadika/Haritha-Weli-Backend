@@ -6,12 +6,12 @@ import { JWT_SECRET } from '../secrets';
 import { BadRequestsException } from '../exceptions/bad_requests';
 import { ErrorCode } from '../exceptions/root';
 import { UnprocessableEntity } from '../exceptions/validation';
-import { SignUpSchema } from '../schema/users';
+import { ForgetPasswordSchema, SignUpSchema } from '../schema/users';
 import { NotFoundException } from '../exceptions/not-found';
 
 export const signup = async (req:Request, res:Response, next: NextFunction) => {
     SignUpSchema.parse(req.body)
-        const {email, password, name} = req.body;
+    const {email, password, name, phoneNumber} = req.body;
 
     let user = await prismaClient.user.findFirst({where: {email}})
     if (user) {
@@ -22,14 +22,40 @@ export const signup = async (req:Request, res:Response, next: NextFunction) => {
         data:{
             name,
             email,
-            password:hashSync(password, 10)
+            phoneNumber,
+            password:hashSync(password, 10),
+           
         }
     })
 
-    res.json(user)
-    
+    res.json(user)    
 
 }
+
+export const changePassword = async (req: Request, res:Response) => {
+
+}
+
+export const forgotPassword = async (req: Request, res:Response) => {
+    try{
+        const body = req.body
+        const payload = ForgetPasswordSchema.parse(body)
+        let user = await prismaClient.user.findUnique({
+            where:{
+                email: payload.email
+            }
+        })
+        if(!user){
+            throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND)
+        }
+        
+
+    }catch(err){
+
+    }
+
+}
+
 
 export const login = async (req:Request, res:Response) => {
     const {email, password} = req.body;
@@ -56,5 +82,20 @@ export const login = async (req:Request, res:Response) => {
 export const me = async (req:Request, res:Response) => { 
 
     res.json(req.user)
+}
+
+export const removeAccount = async (req:Request, res:Response) => {
+    try{
+        await prismaClient.user.delete({
+            where:{
+                id: +req.params.id
+            }
+        })
+        res.json({success: true})
+
+    }catch(err){
+        throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND)
+
+    }
 }
 

@@ -2,10 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import { UnauthorizedException } from "../exceptions/unauthorized";
 import { ErrorCode } from "../exceptions/root";
 
-const adminMiddleware = async(req: Request, res: Response, next: NextFunction) => {
+const agentMiddleware = async(req: Request, res: Response, next: NextFunction) => {
 
     const user = req.user
-    if(user.role == 'ADMIN'){
+    if(user.role == 'AGENT'){
         next()
     }
     else{
@@ -15,4 +15,4 @@ const adminMiddleware = async(req: Request, res: Response, next: NextFunction) =
 
 }
 
-export default adminMiddleware
+export default agentMiddleware

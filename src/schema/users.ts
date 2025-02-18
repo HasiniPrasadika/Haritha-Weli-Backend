@@ -3,9 +3,13 @@ import {z} from 'zod'
 export const SignUpSchema = z.object({
     name: z.string(),
     email: z.string().email(),
-    password: z.string().min(6)
+    password: z.string().min(6),
+    phoneNumber: z.string()
 })
 
+export const ForgetPasswordSchema = z.object({
+    email: z.string()
+})
 export const AddressSchema = z.object({
     lineOne: z.string(),
     lineTwo: z.string().nullable(),
@@ -16,6 +20,7 @@ export const AddressSchema = z.object({
 
 export const UpdateUserSchema = z.object({
     name: z.string().optional(),
+    phone_number: z.string().optional(),
     defaultShippingAddress: z.number().optional(), 
     defaultBillingAddress: z.number().optional() 
 })
