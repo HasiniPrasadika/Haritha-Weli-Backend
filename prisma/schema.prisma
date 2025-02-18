@@ -22,7 +22,7 @@ enum Role {
 
 enum OrderEventStatus {
   PENDING
-  ACCEPTED
+  PACKING
   OUT_FOR_DELIVERY
   DELIVERED
   CANCELLED
@@ -33,10 +33,13 @@ model User {
   name String
   email String @unique
   password String
+  phoneNumber String
   role Role @default(USER)
   defaultShippingAddress Int?
-  defaultBillingAddress Int?
+  defaultBillingAddress Int?  
 
+  branchId Int?
+  branch Branch? @relation(fields: [branchId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -74,6 +77,7 @@ model Product {
 
   cartItems CartItem[]
   orders OrderProduct[]
+  branches BranchProduct[]
 
   @@fulltext([name, description, tags])
 
@@ -106,6 +110,7 @@ model Order {
   netAmount Decimal
   address String
   status OrderEventStatus @default(PENDING)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -139,8 +144,42 @@ model OrderEvent {
   orderId Int
   order Order @relation(fields: [orderId], references: [id])
   status OrderEventStatus @default(PENDING)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("order_events")
+}
+
+model Branch {
+  id Int @id @default(autoincrement())
+  name String
+  phoneNumber String
+  agent Int?
+  salesRep Int?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products BranchProduct[]
+  users User[]
+  
+
+  @@map("branches")
+}
+
+model BranchProduct {
+  id Int @id @default(autoincrement())
+
+  branchId Int
+  branch Branch @relation(fields: [branchId], references: [id])
+  productId Int
+  product Product @relation(fields: [productId], references: [id])
+
+  quantity Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("branch_products")
 }
