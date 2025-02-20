@@ -7,7 +7,9 @@ import adminMiddleware from '../middlewares/admin'
 
 const authRoutes:Router = Router()
 
-authRoutes.post('/signup', errorHandler(signup))
+authRoutes.post('/signup', errorHandler(signup))  //localhost:5000/api/auth/signup
+// name, email,phone number, password
+
 authRoutes.post('/login', errorHandler(login))
 authRoutes.get('/me', [authMiddleware], errorHandler(me))
 
