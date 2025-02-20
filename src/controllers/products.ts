@@ -7,14 +7,10 @@ import exp from "constants";
 
 export const createProduct = async(req:Request, res:Response) => {
 
-    // ["tea","india"] => "tea,india"
-
-    // Create a validator to this request
-
     const product = await prismaClient.product.create({
         data: {
             ...req.body,
-            tags: req.body.tags.join(',')
+            
         }
     })
     res.json(product)
@@ -98,11 +94,14 @@ export const searchProducts = async (req: Request, res: Response) => {
             name:{
                 search: req.query.q.toString(),
             },
-            description:{
+            mixing:{
                 search: req.query.q.toString(),
             },
-            tags:{
+            applicationMethod:{
                 search: req.query.q.toString(),
+            },
+            storage: {
+                search: req.query.q.toString()
             }
         }
     })
