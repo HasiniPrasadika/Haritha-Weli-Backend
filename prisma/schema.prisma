@@ -41,6 +41,9 @@ model User {
   branchId Int?
   branch Branch? @relation(fields: [branchId], references: [id])
 
+  passwordResetToken String? @unique
+  passwordResetExpires DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -68,9 +71,13 @@ model Address{
 model Product {
   id Int @id @default(autoincrement())
   name String
-  description String @db.Text
+  productImage String?
+  usageImage String?
+  mixing String? @db.Text
+  applicationMethod String? @db.Text
+  storage String? @db.Text
+  volume Int?
   price Decimal
-  tags String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -79,7 +86,7 @@ model Product {
   orders OrderProduct[]
   branches BranchProduct[]
 
-  @@fulltext([name, description, tags])
+  @@fulltext([name])
 
   @@map("products")
 }

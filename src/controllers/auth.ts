@@ -2,12 +2,15 @@ import {NextFunction, Request, Response} from 'express'
 import { prismaClient } from '..';
 import {hashSync, compareSync} from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../secrets';
+import { FRONTEND_URL, JWT_SECRET } from '../secrets';
 import { BadRequestsException } from '../exceptions/bad_requests';
 import { ErrorCode } from '../exceptions/root';
 import { UnprocessableEntity } from '../exceptions/validation';
 import { ForgetPasswordSchema, SignUpSchema } from '../schema/users';
 import { NotFoundException } from '../exceptions/not-found';
+import crypto from "crypto";
+import { sendEmail } from '../utils/email';
+import { UnauthorizedException } from '../exceptions/unauthorized';
 
 export const signup = async (req:Request, res:Response, next: NextFunction) => {
     SignUpSchema.parse(req.body)
@@ -15,7 +18,7 @@ export const signup = async (req:Request, res:Response, next: NextFunction) => {
 
     let user = await prismaClient.user.findFirst({where: {email}})
     if (user) {
-        new BadRequestsException('User already exists!', ErrorCode.USER_ALREADY_EXISTS) 
+        throw new BadRequestsException('User already exists!', ErrorCode.USER_ALREADY_EXISTS) 
     }
 
     user = await prismaClient.user.create({
@@ -32,29 +35,146 @@ export const signup = async (req:Request, res:Response, next: NextFunction) => {
 
 }
 
-export const changePassword = async (req: Request, res:Response) => {
+export const addAgent = async (req:Request, res:Response, next: NextFunction) => {
+    SignUpSchema.parse(req.body)
+    const {email, password, name, phoneNumber} = req.body;
 
-}
-
-export const forgotPassword = async (req: Request, res:Response) => {
-    try{
-        const body = req.body
-        const payload = ForgetPasswordSchema.parse(body)
-        let user = await prismaClient.user.findUnique({
-            where:{
-                email: payload.email
-            }
-        })
-        if(!user){
-            throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND)
-        }
-        
-
-    }catch(err){
-
+    let user = await prismaClient.user.findFirst({where: {email}})
+    if (user) {
+        throw new BadRequestsException('User already exists!', ErrorCode.USER_ALREADY_EXISTS) 
     }
 
+    user = await prismaClient.user.create({
+        data:{
+            name,
+            email,
+            phoneNumber,
+            password:hashSync(password, 10),
+            role: 'AGENT'
+           
+        }
+    })
+
+    res.json(user)    
+
 }
+
+export const addSalesRep = async (req:Request, res:Response, next: NextFunction) => {
+    SignUpSchema.parse(req.body)
+    const {email, password, name, phoneNumber} = req.body;
+
+    let user = await prismaClient.user.findFirst({where: {email}})
+    if (user) {
+        throw new BadRequestsException('User already exists!', ErrorCode.USER_ALREADY_EXISTS) 
+    }
+
+    user = await prismaClient.user.create({
+        data:{
+            name,
+            email,
+            phoneNumber,
+            password:hashSync(password, 10),
+            role: 'REP'
+           
+        }
+    })
+
+    res.json(user)    
+
+}
+
+
+export const changePassword = async (req: Request, res: Response) => {
+    const userId = req.user?.id; // Extract user ID from the authenticated request
+    const { currentPassword, newPassword } = req.body;
+
+    if (!userId) {
+        throw new UnauthorizedException('Unauthorized', ErrorCode.UNAUTHORIZED)
+    }
+
+    const user = await prismaClient.user.findUnique({ where: { id: userId } });
+    if (!user) {
+        throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND)
+    }
+
+    // Verify current password
+    if (!compareSync(currentPassword, user.password)) {
+        throw new NotFoundException('Current Password is Incorrect', ErrorCode.INCORRECT_CURRENT_PASSWORD)
+    }
+
+    // Update password
+    await prismaClient.user.update({
+        where: { id: userId },
+        data: {
+            password: hashSync(newPassword, 10),
+        },
+    });
+
+    res.json({ success: "Password changed successfully" });
+};
+
+export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    const { token, email, newPassword } = req.body;
+
+    const user = await prismaClient.user.findUnique({ where: { email } });
+    if (!user || !user.passwordResetToken || !user.passwordResetExpires) {
+       throw new BadRequestsException('Invalid or expired reset token!', ErrorCode.INVALID_OR_EXPIRED_RESET_TOKEN) 
+    }
+
+    // Hash the provided token and compare it with the stored token
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    if (hashedToken !== user.passwordResetToken || user.passwordResetExpires < new Date()) {
+        throw new BadRequestsException('Invalid or expired reset token!', ErrorCode.INVALID_OR_EXPIRED_RESET_TOKEN) 
+    }
+
+    // Update the password and remove the reset token
+    await prismaClient.user.update({
+        where: { email },
+        data: {
+            password: hashSync(newPassword, 10),
+            passwordResetToken: null,
+            passwordResetExpires: null,
+        },
+    });
+
+    res.json({ success: "Password reset successfully. You can now log in." });
+}
+
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+
+    const user = await prismaClient.user.findUnique({ where: { email } });
+    if (!user) {
+        throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND)
+    }
+
+    // Generate secure token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+    // Store the hashed token and expiration time in the database
+    await prismaClient.user.update({
+        where: { email },
+        data: {
+            passwordResetToken: hashedToken,
+            passwordResetExpires: new Date(Date.now() + 10 * 60 * 1000), // Token valid for 10 mins
+        },
+    });
+
+    // Create password reset URL
+    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}&email=${email}`;
+
+    // Send email with reset link
+    await sendEmail({
+        to: email,
+        subject: "Password Reset Request",
+        html: `<p>You requested a password reset.</p>
+               <p>Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 10 minutes.</p>`,
+    });
+
+    res.json({ success: "Password reset link sent to email" });
+};
 
 
 export const login = async (req:Request, res:Response) => {
