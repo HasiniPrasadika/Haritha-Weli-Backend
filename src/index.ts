@@ -1,11 +1,20 @@
-import express, {Express, Request, Response} from 'express'
-import { PORT } from './secrets'
-import rootRouter from './routes'
 import { PrismaClient } from '@prisma/client'
+import express, { Express } from 'express'
 import { errorMiddleware } from './middlewares/errors'
-import { SignUpSchema } from './schema/users'
+import rootRouter from './routes'
+import { PORT } from './secrets'
+const cors = require("cors");
 
 const app:Express = express()
+
+
+app.use(cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+
 
 app.use(express.json())
 
