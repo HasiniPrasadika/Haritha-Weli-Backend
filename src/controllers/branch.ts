@@ -28,6 +28,7 @@ export const addProductsToBranch = async (req:Request, res: Response) =>{
     try{
         product = await prismaClient.product.findFirstOrThrow({
             where:{
+                
                 id: validatedData.productId
             }
         })
@@ -50,12 +51,28 @@ export const addProductsToBranch = async (req:Request, res: Response) =>{
                 quantity: stockItem.quantity + validatedData.quantity
             }
         })
+        product = await prismaClient.product.update({
+            where:{
+                id: validatedData.productId
+            },
+            data:{
+                adminStock: product.adminStock - validatedData.quantity
+            }
+        })
     } else {
         stock = await prismaClient.branchProduct.create({
             data:{
                 branchId: validatedData.branchId,
                 productId: product.id,
                 quantity: validatedData.quantity
+            }
+        })
+        product = await prismaClient.product.update({
+            where:{
+                id: validatedData.productId
+            },
+            data:{
+                adminStock: product.adminStock - validatedData.quantity
             }
         })
             
