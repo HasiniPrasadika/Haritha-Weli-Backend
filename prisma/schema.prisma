@@ -26,6 +26,8 @@ enum OrderEventStatus {
   OUT_FOR_DELIVERY
   DELIVERED
   CANCELLED
+  RQUEST_REFUND
+  REFUND_DONE
 }
 
 model User {
@@ -78,6 +80,7 @@ model Product {
   storage String? @db.Text
   volume Int?
   price Decimal
+  adminStock Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -164,7 +167,7 @@ model Branch {
   phoneNumber String
   agent Int?
   salesRep Int?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
