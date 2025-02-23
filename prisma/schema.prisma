@@ -40,14 +40,15 @@ model User {
   defaultShippingAddress Int?
   defaultBillingAddress Int?  
 
-  branchId Int?
-  branch Branch? @relation(fields: [branchId], references: [id])
-
   passwordResetToken String? @unique
   passwordResetExpires DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  agentBranches Branch? @relation("Agent")
+  salesRepBranches Branch? @relation("SalesRep")
+  branches Branch[] @relation("BranchUsers")
 
   addresses Address[]
   cartItems CartItem[]
@@ -165,14 +166,18 @@ model Branch {
   id Int @id @default(autoincrement())
   name String
   phoneNumber String
-  agent Int?
-  salesRep Int?
+
+  agentId Int? @unique
+  agent User? @relation("Agent", fields: [agentId], references: [id])
+
+  salesRepId Int? @unique
+  salesRep User? @relation("SalesRep", fields: [salesRepId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   products BranchProduct[]
-  users User[]
+  users User[] @relation("BranchUsers")
   
 
   @@map("branches")

@@ -97,6 +97,56 @@ export const listUsers = async(req: Request, res: Response) => {
 
 }
 
+
+export const listAgents = async (req, res) => {
+    try {
+        const agents = await prismaClient.user.findMany({
+            where: {
+                role: 'AGENT' // Filter only agent users
+            },
+            include: {
+                agentBranches: {  // Fetch the branch where the agent is assigned
+                    include: {
+                        salesRep: true  // Fetch sales representative assigned to that branch
+                    }
+                }
+            },
+            skip: +req.query.skip || 0,
+            take: 5
+        });
+
+        res.json(agents);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching agents", error: error.message });
+    }
+}
+
+export const listReps = async (req, res) => {
+    try {
+        const reps = await prismaClient.user.findMany({
+            where: {
+                role: 'REP' // Filter only agent users
+            },
+            include: {
+                salesRepBranches: {  // Fetch the branch where the agent is assigned
+                    include: {
+                        agent: true  // Fetch sales representative assigned to that branch
+                    }
+                }
+            },
+            skip: +req.query.skip || 0,
+            take: 5
+        });
+
+        res.json(reps);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching reps", error: error.message });
+    }
+}
+
+
 export const getUserById = async(req: Request, res: Response) => {
     try{
         const user = await prismaClient.user.findFirstOrThrow({

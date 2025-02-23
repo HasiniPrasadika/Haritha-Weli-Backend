@@ -1,9 +1,11 @@
 import {NextFunction, Request, Response} from 'express'
-import { CreateBranchSchema, UpdateStockSchema } from '../schema/branch'
+import { AssignAgentSchema, AssignRepSchema, CreateBranchSchema, UpdateStockSchema } from '../schema/branch'
 import { prismaClient } from '..'
-import { BranchProduct, Product } from '@prisma/client'
+import { Branch, BranchProduct, Product } from '@prisma/client'
 import { ErrorCode } from '../exceptions/root'
 import { NotFoundException } from '../exceptions/not-found'
+import { BadRequestsException } from '../exceptions/bad_requests'
+import { updateProduct } from './products'
 
 export const createBranch = async (req:Request, res:Response) => {
 
@@ -78,5 +80,64 @@ export const addProductsToBranch = async (req:Request, res: Response) =>{
             
     }
     res.json(stock)
+
+}
+
+export const assignAgent = async (req:Request, res:Response) => {
+    let updatedBranch: Branch
+    const validatedData = AssignAgentSchema.parse(req.body)
+  
+        const agent = await prismaClient.user.findUnique({
+            where: {
+                id: validatedData.agentId
+            }
+        })
+        
+    
+        if (!agent){
+            throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND)
+        } 
+        if (agent.role !== 'AGENT'){
+            throw new BadRequestsException('User is not an agent', ErrorCode.USER_IS_NOT_AN_AGENT)
+        }
+    
+        updatedBranch = await prismaClient.branch.update({
+          where: { id: validatedData.branchId },
+          data: { agentId: validatedData.agentId },
+        });
+    
+       
+   
+    res.json(updatedBranch)
+    
+
+}
+
+export const assignRep = async (req:Request, res:Response) => {
+    let updatedBranch: Branch
+    const validatedData = AssignRepSchema.parse(req.body)
+  
+        const rep = await prismaClient.user.findUnique({
+            where: {
+                id: validatedData.repId
+            }
+        })
+        
+    
+        if (!rep){
+            throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND)
+        } 
+        if (rep.role !== 'REP'){
+            throw new BadRequestsException('User is not an sales rep', ErrorCode.USER_IS_NOT_AN_REP)
+        }
+    
+        updatedBranch = await prismaClient.branch.update({
+          where: { id: validatedData.branchId },
+          data: { salesRepId: validatedData.repId},
+        });
+    
+    
+    res.json(updatedBranch)
+    
 
 }
