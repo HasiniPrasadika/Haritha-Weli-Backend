@@ -10,3 +10,13 @@ export const UpdateStockSchema = z.object({
     branchId: z.number(),
     quantity: z.number()
 })
+
+export const AssignAgentSchema = z.object({
+    branchId: z.number(),
+    agentId: z.number()
+})
+
+export const AssignRepSchema = z.object({
+    branchId: z.number(),
+    repId: z.number()
+})

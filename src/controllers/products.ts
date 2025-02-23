@@ -90,15 +90,6 @@ export const searchProducts = async (req: Request, res: Response) => {
         where:{
             name:{
                 search: req.query.q.toString(),
-            },
-            mixing:{
-                search: req.query.q.toString(),
-            },
-            applicationMethod:{
-                search: req.query.q.toString(),
-            },
-            storage: {
-                search: req.query.q.toString()
             }
         }
     })
