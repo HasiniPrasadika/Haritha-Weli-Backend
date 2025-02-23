@@ -117,6 +117,9 @@ model Order {
 
   userId Int
   user User @relation(fields: [userId], references: [id])
+
+  branchId Int
+  branch Branch @relation(fields: [branchId], references: [id])
   
   netAmount Decimal
   address String
@@ -178,6 +181,7 @@ model Branch {
 
   products BranchProduct[]
   users User[] @relation("BranchUsers")
+  orders Order[]
   
 
   @@map("branches")
@@ -191,7 +195,7 @@ model BranchProduct {
   productId Int
   product Product @relation(fields: [productId], references: [id])
 
-  quantity Int
+  quantity Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -98,7 +98,7 @@ export const listUsers = async(req: Request, res: Response) => {
 }
 
 
-export const listAgents = async (req, res) => {
+export const listAgents = async (req: Request, res:Response) => {
     try {
         const agents = await prismaClient.user.findMany({
             where: {
@@ -112,7 +112,7 @@ export const listAgents = async (req, res) => {
                 }
             },
             skip: +req.query.skip || 0,
-            take: 5
+          
         });
 
         res.json(agents);
@@ -122,7 +122,7 @@ export const listAgents = async (req, res) => {
     }
 }
 
-export const listReps = async (req, res) => {
+export const listReps = async (req:Request, res:Response) => {
     try {
         const reps = await prismaClient.user.findMany({
             where: {
@@ -136,7 +136,7 @@ export const listReps = async (req, res) => {
                 }
             },
             skip: +req.query.skip || 0,
-            take: 5
+          
         });
 
         res.json(reps);
@@ -161,8 +161,7 @@ export const getUserById = async(req: Request, res: Response) => {
 
     }catch(err){
         throw new NotFoundException('user not found', ErrorCode.USER_NOT_FOUND)
-    }
-    
+    }   
 }
 
 export const changeUserRole = async(req: Request, res: Response) => {
