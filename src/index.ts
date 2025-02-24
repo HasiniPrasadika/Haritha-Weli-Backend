@@ -1,3 +1,4 @@
+
 import express, { Express, Request, Response } from "express";
 import { PORT } from "./secrets";
 import rootRouter from "./routes";
@@ -9,6 +10,7 @@ import cors from "cors";
 
 const app: Express = express();
 
+
 app.use(
     cors({
       origin: "http://localhost:5173",
@@ -16,6 +18,7 @@ app.use(
       allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
+
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
