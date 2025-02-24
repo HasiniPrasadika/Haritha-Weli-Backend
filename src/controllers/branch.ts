@@ -20,6 +20,22 @@ export const createBranch = async (req:Request, res:Response) => {
     res.json(branch)
 
 }
+export const listBranches = async (req: Request, res: Response) => {
+    try {
+        const branches = await prismaClient.branch.findMany({
+            include: {
+                agent: true, // Include agent details if applicable
+                salesRep: true, // Include sales representative details if applicable
+                products: true // Include branch products if needed
+                
+            },
+        });
+
+        res.json(branches);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to retrieve branches", error: error.message });
+    }
+};
 
 export const addProductsToBranch = async (req:Request, res: Response) =>{
 
