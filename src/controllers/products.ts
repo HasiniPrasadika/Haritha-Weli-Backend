@@ -9,6 +9,7 @@ import {
   CLOUDINARY_API_SECRET,
   CLOUDINARY_CLOUD_NAME,
 } from "../secrets";
+import { BadRequestsException } from "../exceptions/bad_requests";
 
 // Configure Cloudinary
 cloudinary.v2.config({
@@ -19,6 +20,7 @@ cloudinary.v2.config({
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
+    console.log(req.body)
     const {
       name,
       mixing,
@@ -47,7 +49,17 @@ export const createProduct = async (req: Request, res: Response) => {
       });
       usageImageUrl = result.secure_url;
     }
-
+    const productt = await prismaClient.product.findFirst({
+      where: {
+        name: name,
+      },
+    });
+    if (productt) {
+      throw new BadRequestsException(
+        "Product already exists!",
+        ErrorCode.PRODUCT_ALREADY_EXISTS
+      );
+    }
     // Create product with Cloudinary image URLs
     const product = await prismaClient.product.create({
       data: {
