@@ -12,6 +12,7 @@ const productsRoutes:Router = Router()
 
 productsRoutes.post('/',[authMiddleware, adminMiddleware], errorHandler(createProduct))
 // productsRoutes.post("/",[authMiddleware, adminMiddleware], upload.fields([{ name: "productImage" }, { name: "usageImage" }]), errorHandler(createProduct));
+
 productsRoutes.put('/:id',[authMiddleware, adminMiddleware], errorHandler(updateProduct))
 productsRoutes.delete('/:id',[authMiddleware, adminMiddleware], errorHandler(deleteProduct))
 productsRoutes.get('/',[authMiddleware, adminMiddleware], errorHandler(listProducts))

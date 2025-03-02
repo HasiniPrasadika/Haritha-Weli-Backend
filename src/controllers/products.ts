@@ -82,6 +82,8 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 };
 
+
+
 export const updateProduct = async (req: Request, res: Response) => {
   try {
     const product = req.body;
@@ -132,6 +134,9 @@ export const listProducts = async (req: Request, res: Response) => {
     data: products,
   });
 };
+
+
+
 
 export const getProductById = async (req: Request, res: Response) => {
   try {

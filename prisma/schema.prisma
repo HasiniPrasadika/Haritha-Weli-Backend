@@ -21,6 +21,7 @@ enum Role {
 }
 
 enum OrderEventStatus {
+  PAYMENT_DONE
   PENDING
   PACKING
   OUT_FOR_DELIVERY
