@@ -7,11 +7,6 @@ import { prismaClient } from "..";
 import { BadRequestsException } from "../exceptions/bad_requests";
 
 export const addItemToCart = async (req: Request, res: Response) => {
-    //Check for the existence for same product in users cart and alter the quantity as required
-    // let user = await prismaClient.user.findFirst({where: {email}})
-    //     if (user) {
-    //         new BadRequestsException('User already exists!', ErrorCode.USER_ALREADY_EXISTS) 
-    //     }
     const validatedData = CreateCartSchema.parse(req.body)
     let product: Product
     let cart: CartItem
