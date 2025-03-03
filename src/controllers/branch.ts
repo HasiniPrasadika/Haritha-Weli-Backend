@@ -77,6 +77,7 @@ export const listBranches = async (req: Request, res: Response) => {
   }
 };
 
+
 export const listAssignedProducts = async (req: Request, res: Response) => {
   try {
     const branchId = parseInt(req.params.branchId);
@@ -89,7 +90,7 @@ export const listAssignedProducts = async (req: Request, res: Response) => {
       );
     }
 
-    // Get all products that are NOT in branchProduct for the given branchId
+    // Get all products assigned to the branch and include quantity from branchProduct
     const assignedProducts = await prismaClient.product.findMany({
       where: {
         id: {
@@ -101,14 +102,33 @@ export const listAssignedProducts = async (req: Request, res: Response) => {
           ).map((bp) => bp.productId),
         },
       },
+      include: {
+        branches: {
+          where: { branchId },
+          select: { quantity: true },
+        },
+      },
     });
 
-    res.json({ count: assignedProducts.length, data: assignedProducts });
+    // Map the products and add quantity information
+    const productsWithQuantity = assignedProducts.map((product) => {
+      // Assuming branches returns an array, we take the first item (as there should only be one per branch)
+      const branchProduct = product.branches[0];
+
+      return {
+        ...product,
+        price: product.price.toNumber(),
+        quantity: branchProduct ? branchProduct.quantity : 0, // Default to 0 if no quantity is found
+      };
+    });
+
+    res.json({ count: productsWithQuantity.length, data: productsWithQuantity });
   } catch (error) {
     console.error("Error fetching assigned products:", error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 export const listUnassignedProducts = async (req: Request, res: Response) => {
   try {
