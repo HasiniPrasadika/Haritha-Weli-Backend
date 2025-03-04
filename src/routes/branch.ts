@@ -14,7 +14,7 @@ const branchRoutes:Router = Router()
 branchRoutes.post('/', [authMiddleware, adminMiddleware], errorHandler(createBranch))
 branchRoutes.get('/', errorHandler(listBranches));
 branchRoutes.get('/unassigned-products/:branchId', [authMiddleware, adminMiddleware], errorHandler(listUnassignedProducts));
-branchRoutes.get('/assigned-products/:branchId', [authMiddleware, adminMiddleware], errorHandler(listAssignedProducts));
+branchRoutes.get('/assigned-products/:branchId', errorHandler(listAssignedProducts));
 branchRoutes.get('/details/:branchId', [authMiddleware, adminAgentMiddleware], errorHandler(getBranchDetails));
 branchRoutes.post('/products', [authMiddleware, adminMiddleware], errorHandler(addProductsToBranch))
 branchRoutes.post('/stock', [authMiddleware, adminAgentMiddleware], errorHandler(updateBranchStock))
