@@ -41,7 +41,11 @@ export const getBranchDetails = async (req: Request, res: Response) => {
       include: {
         agent: true, // Include agent details
         salesRep: true, // Include sales representative details
-        products: true, // Optionally include products assigned to the branch
+        products: {
+          include: {
+            product: true
+          }
+        }, // Optionally include products assigned to the branch
       },
     });
 

@@ -13,7 +13,7 @@ export const ForgetPasswordSchema = z.object({
 export const AddressSchema = z.object({
     lineOne: z.string(),
     lineTwo: z.string().nullable(),
-    pinCode: z.string().length(6),
+    pinCode: z.string(),
     country: z.string(),
     city: z.string()
 })

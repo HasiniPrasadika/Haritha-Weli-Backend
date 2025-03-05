@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { ChangeQuantitySchema, CreateCartSchema } from "../schema/cart";
 import { NotFoundException } from "../exceptions/not-found";
 import { ErrorCode } from "../exceptions/root";
-import { CartItem, Product } from "@prisma/client";
+import { Branch, CartItem, Product } from "@prisma/client";
 import { prismaClient } from "..";
 import { BadRequestsException } from "../exceptions/bad_requests";
 
@@ -10,6 +10,7 @@ export const addItemToCart = async (req: Request, res: Response) => {
     const validatedData = CreateCartSchema.parse(req.body)
     let product: Product
     let cart: CartItem
+    let branch: Branch
     try{
         product = await prismaClient.product.findFirstOrThrow({
             where:{
@@ -19,6 +20,16 @@ export const addItemToCart = async (req: Request, res: Response) => {
 
     }catch(err){
         throw new NotFoundException('Product not found', ErrorCode.PRODUCT_NOT_FOUND)
+    }
+    try{
+        branch = await prismaClient.branch.findFirstOrThrow({
+            where:{
+                id: validatedData.branchId
+            }
+        })
+
+    }catch(err){
+        throw new NotFoundException('Branch not found', ErrorCode.BRANCH_NOT_FOUND)
     }
     let cartItem = await prismaClient.cartItem.findFirst({
         where:{            
@@ -47,7 +58,9 @@ export const addItemToCart = async (req: Request, res: Response) => {
             data: {
                 userId: req.user.id,
                 productId: product.id,
-                quantity: validatedData.quantity
+                quantity: validatedData.quantity,
+                branchId: validatedData.branchId,
+                branchName: branch.name
             }
         })
 
@@ -92,6 +105,7 @@ export const getCart = async (req: Request, res: Response) => {
         },
         include:{
             product: true
+            
         }
     })
     res.json(cart)
