@@ -10,3 +10,5 @@ export const EMAIL_PASS = process.env.EMAIL_PASS
 export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY
 export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET
+export const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID
+export const PAYHERE_SECRET = process.env.PAYHERE_SECRET
