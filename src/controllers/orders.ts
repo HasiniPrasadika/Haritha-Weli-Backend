@@ -472,6 +472,15 @@ export const listAllOrders = async (req: Request, res: Response) => {
   const orders = await prismaClient.order.findMany({
     where: whereClause,
     skip: +req.query.skip || 0,
+    include: {
+      products: {
+        include: {
+          product: true
+        }
+      },
+      user: true,
+      branch: true
+    }
   });
   res.json(orders);
 };

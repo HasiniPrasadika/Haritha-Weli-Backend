@@ -86,20 +86,75 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const updateProduct = async (req: Request, res: Response) => {
   try {
-    const product = req.body;
+    const {
+      name,
+      mixing,
+      applicationMethod,
+      storage,
+      volume,
+      price,
+      adminStock,
+      productImage,
+      usageImage,
+    } = req.body;
 
-    const updatedProduct = await prismaClient.product.update({
-      where: {
-        id: +req.params.id,
-      },
-      data: product,
+    const productId = +req.params.id;
+
+    // Check if the product exists
+    const existingProduct = await prismaClient.product.findUnique({
+      where: { id: productId },
     });
+
+    if (!existingProduct) {
+      throw new NotFoundException(
+        "Product Not Found",
+        ErrorCode.PRODUCT_NOT_FOUND
+      );
+    }
+
+    let productImageUrl = existingProduct.productImage;
+    let usageImageUrl = existingProduct.usageImage;
+
+    // Upload new product image to Cloudinary if provided
+    if (productImage && productImage !== existingProduct.productImage) {
+      const result = await cloudinary.v2.uploader.upload(productImage, {
+        folder: "products",
+      });
+      productImageUrl = result.secure_url;
+    }
+
+    // Upload new usage image to Cloudinary if provided
+    if (usageImage && usageImage !== existingProduct.usageImage) {
+      const result = await cloudinary.v2.uploader.upload(usageImage, {
+        folder: "usageImages",
+      });
+      usageImageUrl = result.secure_url;
+    }
+
+    // Update the product with new data
+    const updatedProduct = await prismaClient.product.update({
+      where: { id: productId },
+      data: {
+        name,
+        mixing,
+        applicationMethod,
+        storage,
+        volume: parseInt(volume),
+        price: parseFloat(price),
+        adminStock: parseInt(adminStock),
+        productImage: productImageUrl,
+        usageImage: usageImageUrl,
+      },
+    });
+
     res.json(updatedProduct);
-  } catch (err) {
-    throw new NotFoundException(
-      "Product Not Found",
-      ErrorCode.PRODUCT_NOT_FOUND
-    );
+  } catch (error) {
+    console.error("Error updating product:", error);
+    if (error instanceof NotFoundException) {
+      res.status(404).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 };
 
