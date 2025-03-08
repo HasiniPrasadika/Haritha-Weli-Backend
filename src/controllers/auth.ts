@@ -83,6 +83,97 @@ export const addSalesRep = async (req:Request, res:Response, next: NextFunction)
 
 }
 
+// Edit Agent
+export const editAgent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        SignUpSchema.parse(req.body);
+        const { name, email, phoneNumber, password } = req.body;
+        const agentId = parseInt(req.params.id, 10);
+
+        let agent = await prismaClient.user.findFirst({ where: { id: agentId, role: 'AGENT' } });
+        if (!agent) {
+            throw new NotFoundException("Agent Not Found", ErrorCode.USER_NOT_FOUND);
+        }
+
+        agent = await prismaClient.user.update({
+            where: { id: agentId },
+            data: {
+                name,
+                email,
+                phoneNumber,
+                password: password ? hashSync(password, 10) : agent.password,
+            },
+        });
+
+        res.json(agent);
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Edit Sales Representative
+export const editSalesRep = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        SignUpSchema.parse(req.body);
+        const { name, email, phoneNumber, password } = req.body;
+        const salesRepId = parseInt(req.params.id, 10);
+
+        let salesRep = await prismaClient.user.findFirst({ where: { id: salesRepId, role: 'REP' } });
+        if (!salesRep) {
+            throw new NotFoundException("Sales Representative Not Found", ErrorCode.USER_NOT_FOUND);
+        }
+
+        salesRep = await prismaClient.user.update({
+            where: { id: salesRepId },
+            data: {
+                name,
+                email,
+                phoneNumber,
+                password: password ? hashSync(password, 10) : salesRep.password,
+            },
+        });
+
+        res.json(salesRep);
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Delete Agent
+export const deleteAgent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const agentId = parseInt(req.params.id, 10);
+
+        const agent = await prismaClient.user.findFirst({ where: { id: agentId, role: 'AGENT' } });
+        if (!agent) {
+            throw new NotFoundException("Agent Not Found", ErrorCode.USER_NOT_FOUND);
+        }
+
+        await prismaClient.user.delete({ where: { id: agentId } });
+        res.json({ message: "Agent deleted successfully" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Delete Sales Representative
+export const deleteSalesRep = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const salesRepId = parseInt(req.params.id, 10);
+
+        const salesRep = await prismaClient.user.findFirst({ where: { id: salesRepId, role: 'REP' } });
+        if (!salesRep) {
+            throw new NotFoundException("Sales Representative Not Found", ErrorCode.USER_NOT_FOUND);
+        }
+
+        await prismaClient.user.delete({ where: { id: salesRepId } });
+        res.json({ message: "Sales Representative deleted successfully" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
 
 export const changePassword = async (req: Request, res: Response) => {
     const userId = req.user?.id; // Extract user ID from the authenticated request
