@@ -3,6 +3,7 @@ import {
   AssignAgentSchema,
   AssignRepSchema,
   CreateBranchSchema,
+  UpdateBranchSchema,
   UpdateStockSchema,
 } from "../schema/branch";
 import { prismaClient } from "..";
@@ -19,10 +20,67 @@ export const createBranch = async (req: Request, res: Response) => {
     data: {
       name: validatedData.name,
       phoneNumber: validatedData.phoneNumber,
+      address: validatedData.address
+      
     },
   });
   res.json(branch);
 };
+
+export const updateBranch = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const branchId = parseInt(req.params.branchId);
+    const validatedData = UpdateBranchSchema.parse(req.body); // Allow partial updates
+
+    if (isNaN(branchId)) {
+      throw new BadRequestsException("Invalid branch ID", ErrorCode.INVALID_BRANCH_ID);
+    }
+
+    const branch = await prismaClient.branch.findUnique({ where: { id: branchId } });
+
+    if (!branch) {
+      throw new NotFoundException("Branch not found", ErrorCode.BRANCH_NOT_FOUND);
+    }
+
+    const updatedBranch = await prismaClient.branch.update({
+      where: { id: branchId },
+      data: {
+        name: validatedData.name ?? branch.name,
+        phoneNumber: validatedData.phoneNumber ?? branch.phoneNumber,
+        address: validatedData.address ?? branch.address
+        
+      },
+    });
+
+    res.json({ message: "Branch updated successfully", updatedBranch });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteBranch = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const branchId = parseInt(req.params.branchId);
+
+    if (isNaN(branchId)) {
+      throw new BadRequestsException("Invalid branch ID", ErrorCode.INVALID_BRANCH_ID);
+    }
+
+    const branch = await prismaClient.branch.findUnique({ where: { id: branchId } });
+
+    if (!branch) {
+      throw new NotFoundException("Branch not found", ErrorCode.BRANCH_NOT_FOUND);
+    }
+
+    await prismaClient.branch.delete({ where: { id: branchId } });
+
+    res.json({ message: "Branch deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 export const getBranchDetails = async (req: Request, res: Response) => {
   try {
@@ -369,3 +427,66 @@ export const assignRep = async (req: Request, res: Response) => {
 
   res.json(updatedBranch);
 };
+
+// Remove Sales Representative from Branch
+export const removeRepFromBranch = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { branchId } = req.params;
+
+    // Find the branch with the assigned sales representative
+    const branch = await prismaClient.branch.findUnique({
+      where: { id: parseInt(branchId, 10) },
+      include: { salesRep: true },
+    });
+
+    if (!branch) {
+      throw new NotFoundException("Branch not found", ErrorCode.BRANCH_NOT_FOUND);
+    }
+
+    if (!branch.salesRep) {
+      throw new BadRequestsException("No sales rep assigned to this branch", ErrorCode.NO_REP_ASSIGNED);
+    }
+
+    // Update the branch to remove the assigned sales representative
+    const updatedBranch = await prismaClient.branch.update({
+      where: { id: branch.id },
+      data: { salesRepId: null },
+    });
+
+    res.json({ message: "Sales Representative removed successfully", updatedBranch });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Remove Agent from Branch
+export const removeAgentFromBranch = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { branchId } = req.params;
+
+    // Find the branch with the assigned agent
+    const branch = await prismaClient.branch.findUnique({
+      where: { id: parseInt(branchId, 10) },
+      include: { agent: true },
+    });
+
+    if (!branch) {
+      throw new NotFoundException("Branch not found", ErrorCode.BRANCH_NOT_FOUND);
+    }
+
+    if (!branch.agent) {
+      throw new BadRequestsException("No agent assigned to this branch", ErrorCode.NO_AGENT_ASSIGNED);
+    }
+
+    // Update the branch to remove the assigned agent
+    const updatedBranch = await prismaClient.branch.update({
+      where: { id: branch.id },
+      data: { agentId: null },
+    });
+
+    res.json({ message: "Agent removed successfully", updatedBranch });
+  } catch (err) {
+    next(err);
+  }
+};
+

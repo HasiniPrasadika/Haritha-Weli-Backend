@@ -33,7 +33,8 @@ export const addItemToCart = async (req: Request, res: Response) => {
     }
     let cartItem = await prismaClient.cartItem.findFirst({
         where:{            
-        product
+        product,
+        branchId: branch.id
         }
     })
     if(cartItem){
