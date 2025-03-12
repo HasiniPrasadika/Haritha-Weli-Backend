@@ -49,5 +49,6 @@ export enum ErrorCode {
 
     INVALID_BRANCH_ID = 8001,
     BRANCH_NOT_FOUND = 8002,
+    PRODUCT_NOT_FOUND_IN_BRANCH = 8003,
    
 }

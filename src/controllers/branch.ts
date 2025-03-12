@@ -258,22 +258,7 @@ export const addProductsToBranch = async (req: Request, res: Response) => {
       "Product already added",
       ErrorCode.PRODUCT_ALREADY_ADDED
     );
-    // stock = await prismaClient.branchProduct.update({
-    //     where: {
-    //         id: stockItem.id
-    //     },
-    //     data:{
-    //         quantity: stockItem.quantity + validatedData.quantity
-    //     }
-    // })
-    // product = await prismaClient.product.update({
-    //     where:{
-    //         id: validatedData.productId
-    //     },
-    //     data:{
-    //         adminStock: product.adminStock - validatedData.quantity
-    //     }
-    // })
+ 
   } else {
     stock = await prismaClient.branchProduct.create({
       data: {
@@ -293,6 +278,57 @@ export const addProductsToBranch = async (req: Request, res: Response) => {
   }
   res.json(stock);
 };
+
+export const removeProductFromBranch = async (req: Request, res: Response) => {
+  const { branchId, productId } = req.body;
+
+  let stockItem: BranchProduct;
+  let product: Product;
+
+  try {
+    stockItem = await prismaClient.branchProduct.findFirstOrThrow({
+      where: {
+        branchId,
+        productId,
+      },
+    });
+  } catch (err) {
+    throw new NotFoundException(
+      "Product not found in branch",
+      ErrorCode.PRODUCT_NOT_FOUND_IN_BRANCH
+    );
+  }
+
+  try {
+    product = await prismaClient.product.findFirstOrThrow({
+      where: {
+        id: productId,
+      },
+    });
+  } catch (err) {
+    throw new NotFoundException("Product not found", ErrorCode.PRODUCT_NOT_FOUND);
+  }
+
+  // Remove product from branch stock
+  await prismaClient.branchProduct.delete({
+    where: {
+      id: stockItem.id,
+    },
+  });
+
+  // Update admin stock by adding back the removed quantity
+  await prismaClient.product.update({
+    where: {
+      id: productId,
+    },
+    data: {
+      adminStock: product.adminStock + stockItem.quantity,
+    },
+  });
+
+  res.json({ message: "Product removed from branch successfully" });
+};
+
 
 export const updateBranchStock = async (req: Request, res: Response) => {
   const validatedData = UpdateStockSchema.parse(req.body);
