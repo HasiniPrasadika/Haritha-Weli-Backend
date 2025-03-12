@@ -479,7 +479,12 @@ export const listAllOrders = async (req: Request, res: Response) => {
         }
       },
       user: true,
-      branch: true
+      branch: {
+        include: {
+          agent: true,
+          salesRep: true
+        }
+      }
     }
   });
   res.json(orders);
