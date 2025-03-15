@@ -76,9 +76,9 @@ export const createProduct = async (req: Request, res: Response) => {
     });
 
     res.status(201).json(product);
-  } catch (error) {
+  } catch (error:any) {
     console.error("Error creating product:", error);
-    res.status(500).json({ error: error.message });
+    res.json({ error: error.message });
   }
 };
 
@@ -148,7 +148,7 @@ export const updateProduct = async (req: Request, res: Response) => {
     });
 
     res.json(updatedProduct);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating product:", error);
     if (error instanceof NotFoundException) {
       res.status(404).json({ error: error.message });
@@ -182,7 +182,7 @@ export const listProducts = async (req: Request, res: Response) => {
 
   const count = await prismaClient.product.count();
   const products = await prismaClient.product.findMany({
-    skip: +req.query.skip || 0,
+    skip: +req.query.skip  || 0,
   });
   res.json({
     count,
@@ -214,7 +214,7 @@ export const searchProducts = async (req: Request, res: Response) => {
   const products = await prismaClient.product.findMany({
     where: {
       name: {
-        search: req.query.q.toString(),
+        search: req.query.q?.toString(),
       },
     },
   });
