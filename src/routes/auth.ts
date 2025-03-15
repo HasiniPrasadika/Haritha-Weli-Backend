@@ -7,8 +7,10 @@ import adminMiddleware from '../middlewares/admin'
 
 const authRoutes:Router = Router()
 
+
 authRoutes.post('/google', errorHandler(googleAuth))
 authRoutes.post('/signup', errorHandler(signup))
+
 authRoutes.post('/login', errorHandler(login))
 authRoutes.get('/me', [authMiddleware], errorHandler(me))
 

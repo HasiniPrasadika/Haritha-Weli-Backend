@@ -135,7 +135,7 @@ export const addAgent = async (req:Request, res:Response, next: NextFunction) =>
 
     let user = await prismaClient.user.findFirst({where: {email}})
     if (user) {
-        throw new BadRequestsException('User already exists!', ErrorCode.USER_ALREADY_EXISTS) 
+        throw new BadRequestsException('An account with this email already exists. Please use another email address.', ErrorCode.USER_ALREADY_EXISTS) 
     }
 
     user = await prismaClient.user.create({
@@ -149,7 +149,7 @@ export const addAgent = async (req:Request, res:Response, next: NextFunction) =>
         }
     })
 
-    res.json(user)    
+    res.json(user)
 
 }
 
@@ -159,7 +159,7 @@ export const addSalesRep = async (req:Request, res:Response, next: NextFunction)
 
     let user = await prismaClient.user.findFirst({where: {email}})
     if (user) {
-        throw new BadRequestsException('User already exists!', ErrorCode.USER_ALREADY_EXISTS) 
+        throw new BadRequestsException('An account with this email already exists. Please use another email address.', ErrorCode.USER_ALREADY_EXISTS) 
     }
 
     user = await prismaClient.user.create({
