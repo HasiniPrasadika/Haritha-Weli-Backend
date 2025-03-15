@@ -1,8 +1,8 @@
 import {NextFunction, Request, Response} from 'express'
 import { prismaClient } from '..';
-import {hashSync, compareSync} from 'bcrypt';
+import {hashSync, compareSync} from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { FRONTEND_URL, JWT_SECRET } from '../secrets';
+import { CLIENT_ID, FRONTEND_URL, JWT_SECRET } from '../secrets';
 import { BadRequestsException } from '../exceptions/bad_requests';
 import { ErrorCode } from '../exceptions/root';
 import { UnprocessableEntity } from '../exceptions/validation';
@@ -11,6 +11,81 @@ import { NotFoundException } from '../exceptions/not-found';
 import crypto from "crypto";
 import { sendEmail } from '../utils/email';
 import { UnauthorizedException } from '../exceptions/unauthorized';
+import { OAuth2Client } from 'google-auth-library';
+
+
+import admin from "../utils/firebase";
+
+// Initialize the Google OAuth client
+const client = new OAuth2Client(CLIENT_ID);
+
+
+export const googleAuth = async (req: Request, res: Response) => {
+    try {
+      const { credential } = req.body;
+      console.log("Received credential:", credential ? "Credential exists" : "No credential");
+      
+      if (!credential) {
+        return res.status(400).json({ error: "No credential provided" });
+      }
+      
+      try {
+        console.log("Attempting to verify credential with Google...");
+        const ticket = await client.verifyIdToken({
+          idToken: credential,
+          audience: CLIENT_ID
+        });
+        
+        const payload = ticket.getPayload();
+        
+        if (!payload) {
+          return res.status(400).json({ error: "Invalid payload" });
+        }
+        
+        console.log("Credential verified successfully", {
+          email: payload.email,
+          name: payload.name
+        });
+        
+        const { email, name, picture } = payload;
+        
+        if (!email) {
+          return res.status(400).json({ error: "Email not found in token payload" });
+        }
+        
+        // Check if user exists in the database
+        let user = await prismaClient.user.findFirst({ where: { email } });
+        
+        // If user does not exist, create a new user
+        if (!user) {
+          console.log("Creating new user:", email);
+          user = await prismaClient.user.create({
+            data: {
+              name: name || "",
+              email,
+              password: "", // No password for Google users
+              phoneNumber: "",
+            },
+          });
+        } else {
+          console.log("User found:", user.id);
+        }
+        
+        // Generate JWT token for session management
+        const authToken = jwt.sign({ userId: user.id }, JWT_SECRET, {
+          expiresIn: "7d",
+        });
+        
+        res.json({ user, token: authToken });
+      } catch (verifyError) {
+        console.error("Google verification error:", verifyError);
+        return res.status(400).json({ error: "Invalid Google Token", details: verifyError.message });
+      }
+    } catch (error) {
+      console.error("General error in googleAuth:", error);
+      res.status(500).json({ error: "Server Error", details: error.message });
+    }
+  };
 
 export const signup = async (req:Request, res:Response, next: NextFunction) => {
     SignUpSchema.parse(req.body)
@@ -35,6 +110,25 @@ export const signup = async (req:Request, res:Response, next: NextFunction) => {
 
 }
 
+export const login = async (req:Request, res:Response) => {
+    const {email, password} = req.body;
+
+    let user = await prismaClient.user.findFirst({where: {email}})
+    if (!user) {
+        throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND)
+    }
+    if(!compareSync(password, user.password)){
+        throw new BadRequestsException('Incorrect password', ErrorCode.INCORRECT_PASSWORD)
+    }
+    const token = jwt.sign({
+        userId: user.id
+    }, JWT_SECRET)
+
+    
+
+    res.json({user, token})
+
+}
 export const addAgent = async (req:Request, res:Response, next: NextFunction) => {
     SignUpSchema.parse(req.body)
     const {email, password, name, phoneNumber} = req.body;
@@ -268,25 +362,7 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
 };
 
 
-export const login = async (req:Request, res:Response) => {
-    const {email, password} = req.body;
 
-    let user = await prismaClient.user.findFirst({where: {email}})
-    if (!user) {
-        throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND)
-    }
-    if(!compareSync(password, user.password)){
-        throw new BadRequestsException('Incorrect password', ErrorCode.INCORRECT_PASSWORD)
-    }
-    const token = jwt.sign({
-        userId: user.id
-    }, JWT_SECRET)
-
-    
-
-    res.json({user, token})
-
-}
 
 // /me -> return the logged in user
 
