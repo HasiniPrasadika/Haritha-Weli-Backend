@@ -14,7 +14,7 @@ userRoutes.put('/:id/role', [authMiddleware, adminMiddleware], errorHandler(chan
 userRoutes.get('/', [authMiddleware, adminMiddleware], errorHandler(listUsers))
 userRoutes.get('/agent', [authMiddleware, adminMiddleware], errorHandler(listAgents))
 userRoutes.get('/rep', [authMiddleware, adminMiddleware], errorHandler(listReps))
-userRoutes.get('/:id', [authMiddleware, adminMiddleware], errorHandler(getUserById))
+userRoutes.get('/:id', [authMiddleware], errorHandler(getUserById))
 userRoutes.get('/agent-branch/:userId', [authMiddleware], errorHandler(getAgentBranch))
 
 export default userRoutes
