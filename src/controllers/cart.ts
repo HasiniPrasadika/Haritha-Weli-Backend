@@ -17,6 +17,7 @@ export const addItemToCart = async (req: Request, res: Response) => {
                 id: validatedData.productId
             }
         })
+        console.log("product : ", product)
 
     }catch(err){
         throw new NotFoundException('Product not found', ErrorCode.PRODUCT_NOT_FOUND)
@@ -27,16 +28,19 @@ export const addItemToCart = async (req: Request, res: Response) => {
                 id: validatedData.branchId
             }
         })
+        console.log("branch : ", branch)
 
     }catch(err){
         throw new NotFoundException('Branch not found', ErrorCode.BRANCH_NOT_FOUND)
     }
     let cartItem = await prismaClient.cartItem.findFirst({
-        where:{            
-        product,
-        branchId: branch.id
+        where: {
+            userId: req.user.id, // Important: also filter by the current user
+            productId: product.id,
+            branchId: branch.id
         }
-    })
+    });
+    console.log("existing cart item : ", cartItem)
     if(cartItem){
         // const updatedProduct = await prismaClient.product.update({
         //     where:{
@@ -53,6 +57,7 @@ export const addItemToCart = async (req: Request, res: Response) => {
                 quantity: cartItem.quantity+validatedData.quantity
             }
         })
+        console.log("cart : ", cart)
        
     }else{
         cart = await prismaClient.cartItem.create({
@@ -64,6 +69,7 @@ export const addItemToCart = async (req: Request, res: Response) => {
                 branchName: branch.name
             }
         })
+        console.log("cart : ", cart)
 
     }
     

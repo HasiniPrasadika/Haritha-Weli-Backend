@@ -182,3 +182,62 @@ export const changeUserRole = async(req: Request, res: Response) => {
     }
     
 }
+
+export const getAgentBranch = async (req: Request, res: Response) => {
+    const userId = +req.params.userId; // Convert to number
+    
+    if (!userId || isNaN(userId)) {
+        throw new BadRequestsException('Invalid user ID', ErrorCode.INVALID_USER_ID);
+    }
+
+    try {
+        // First check if the user exists and is an agent
+        const user = await prismaClient.user.findFirst({
+            where: {
+                id: userId
+            }
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND);
+        }
+
+        if (user.role !== 'AGENT') {
+            return res.json({ 
+                success: false, 
+                message: 'User is not an agent' 
+            });
+        }
+
+        // Get the branch where the user is assigned as an agent
+        const branch = await prismaClient.branch.findFirst({
+            where: {
+                agentId: userId
+            },
+            select: {
+                id: true,
+                name: true
+            }
+        });
+
+        if (!branch) {
+            return res.json({ 
+                success: false, 
+                message: 'Agent is not assigned to any branch' 
+            });
+        }
+
+        return res.json({
+            success: true,
+            branchId: branch.id,
+            branchName: branch.name
+        });
+
+    } catch (error) {
+        if (error instanceof NotFoundException) {
+            throw error;
+        }
+        console.error(error);
+        throw new BadRequestsException('Error fetching agent branch', ErrorCode.INTERNAL_EXCEPTION);
+    }
+}

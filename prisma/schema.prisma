@@ -31,6 +31,13 @@ enum OrderEventStatus {
   REQUEST_REFUND
   REFUND_DONE
 }
+enum StockRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DELIVERED
+  COMPLETED
+}
 
 model User {
   id Int @id @default(autoincrement())
@@ -51,6 +58,9 @@ model User {
   agentBranches Branch? @relation("Agent")
   salesRepBranches Branch? @relation("SalesRep")
   branches Branch[] @relation("BranchUsers")
+
+  createdStockRequests StockRequest[] @relation("StockRequestCreator")
+  approvedStockRequests StockRequest[] @relation("StockRequestApprover")
 
   addresses Address[]
   cartItems CartItem[]
@@ -88,6 +98,7 @@ model Product {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  stockRequestItems StockRequestItem[]
   cartItems CartItem[]
   orders OrderProduct[]
   branches BranchProduct[]
@@ -185,6 +196,7 @@ model Branch {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  stockRequests StockRequest[]
   products BranchProduct[]
   users User[] @relation("BranchUsers")
   orders Order[]
@@ -207,4 +219,46 @@ model BranchProduct {
   updatedAt DateTime @updatedAt
 
   @@map("branch_products")
+}
+
+model StockRequest {
+  id Int @id @default(autoincrement())
+  
+  branchId Int
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  createdById Int
+  createdBy User @relation("StockRequestCreator", fields: [createdById], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  approvedById Int?
+  approvedBy User? @relation("StockRequestApprover", fields: [approvedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  
+  status StockRequestStatus @default(PENDING)
+  note String? @db.Text
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  items StockRequestItem[]
+  
+  @@map("stock_requests")
+}
+
+model StockRequestItem {
+  id Int @id @default(autoincrement())
+  
+  requestId Int
+  request StockRequest @relation(fields: [requestId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  productId Int
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  requestedQuantity Int
+  approvedQuantity Int?
+  receivedQuantity Int?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("stock_request_items")
 }
