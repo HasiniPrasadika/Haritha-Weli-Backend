@@ -403,7 +403,7 @@ export const listOrders = async (req: Request, res: Response) => {
 };
 export const getOrdersByBranch = async (req: Request, res: Response) => {
   try {
-    const { branchId } = req.params; // Get branchId from request parameters
+    const branchId  = req.params.id; // Get branchId from request parameters
 
     const orders = await prismaClient.order.findMany({
       where: { branchId: Number(branchId) }, // Convert branchId to a number
