@@ -93,6 +93,7 @@ model Product {
   storage String? @db.Text
   volume Int?
   price Decimal
+  itemCode String?
   adminStock Int?
 
   createdAt DateTime @default(now())

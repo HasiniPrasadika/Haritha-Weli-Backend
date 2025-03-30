@@ -28,6 +28,7 @@ export const createProduct = async (req: Request, res: Response) => {
       storage,
       volume,
       price,
+      itemCode,
       adminStock,
       productImage,
       usageImage,
@@ -71,6 +72,7 @@ export const createProduct = async (req: Request, res: Response) => {
         storage,
         volume: parseInt(volume), // Ensure numeric values are parsed correctly
         price: parseFloat(price),
+        itemCode,
         adminStock: parseInt(adminStock),
       },
     });
@@ -93,6 +95,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       storage,
       volume,
       price,
+      itemCode,
       adminStock,
       productImage,
       usageImage,
@@ -141,6 +144,7 @@ export const updateProduct = async (req: Request, res: Response) => {
         storage,
         volume: parseInt(volume),
         price: parseFloat(price),
+        itemCode,
         adminStock: parseInt(adminStock),
         productImage: productImageUrl,
         usageImage: usageImageUrl,
