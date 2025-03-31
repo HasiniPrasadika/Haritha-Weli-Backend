@@ -6,6 +6,7 @@ import cartRoutes from "./cart";
 import orderRoutes from "./orders";
 import branchRoutes from "./branch";
 import stockRoutes from "./stockrequest";
+import branchOrderRoutes from "./branchorders";
 
 const rootRouter:Router = Router()
 
@@ -16,6 +17,7 @@ rootRouter.use('/cart', cartRoutes)
 rootRouter.use('/orders', orderRoutes)
 rootRouter.use('/branch', branchRoutes)
 rootRouter.use('/stock', stockRoutes)
+rootRouter.use('/agent', branchOrderRoutes)
 
 export default rootRouter;
 
