@@ -398,6 +398,13 @@ export const listOrders = async (req: Request, res: Response) => {
     where: {
       userId: req.user.id,
     },
+    include: {
+      products: {
+        include: {
+          product: true
+        }
+      },
+    }
   });
   res.json(orders);
 };
