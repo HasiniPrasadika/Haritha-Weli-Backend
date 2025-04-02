@@ -65,6 +65,7 @@ model User {
   addresses Address[]
   cartItems CartItem[]
   orders Order[]
+  reviews Review[]
 
   @@map("users")
 }
@@ -103,6 +104,7 @@ model Product {
   cartItems CartItem[]
   orders OrderProduct[]
   branches BranchProduct[]
+  reviews Review[]
 
   @@fulltext([name])
 
@@ -151,6 +153,7 @@ model Order {
 
   products OrderProduct[]
   events OrderEvent[]
+  reviews Review[]
 
   @@map("orders")
 
@@ -266,4 +269,26 @@ model StockRequestItem {
   updatedAt DateTime @updatedAt
   
   @@map("stock_request_items")
+}
+
+model Review {
+  id Int @id @default(autoincrement())
+  
+  productId Int
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  orderId Int
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  rating Int
+  comment String? @db.Text
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([productId, orderId, userId])
+  @@map("reviews")
 }

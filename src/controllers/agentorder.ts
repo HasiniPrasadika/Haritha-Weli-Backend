@@ -122,7 +122,7 @@ const order = await prismaClient.order.create({
     discountAmount: discountAmount, // Store calculated discount amount
     netAmount: finalAmount, // Store final amount after discount
     address: validatedData.address,
-    status: "PAYMENT_DONE",
+    status: "DELIVERED",
     products: {
       create: validatedData.items.map((item) => ({
         productId: item.productId,
@@ -132,7 +132,7 @@ const order = await prismaClient.order.create({
     events: {
       create: [
         {
-          status: "PAYMENT_DONE",
+          status: "DELIVERED",
         },
       ],
     },

@@ -7,6 +7,7 @@ import orderRoutes from "./orders";
 import branchRoutes from "./branch";
 import stockRoutes from "./stockrequest";
 import branchOrderRoutes from "./branchorders";
+import reviewRoutes from "./review";
 
 const rootRouter:Router = Router()
 
@@ -18,6 +19,7 @@ rootRouter.use('/orders', orderRoutes)
 rootRouter.use('/branch', branchRoutes)
 rootRouter.use('/stock', stockRoutes)
 rootRouter.use('/agent', branchOrderRoutes)
+rootRouter.use('/reviews', reviewRoutes)
 
 export default rootRouter;
 
