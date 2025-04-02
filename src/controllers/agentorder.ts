@@ -1,11 +1,8 @@
 import { Request, Response } from "express";
-
 import { z } from "zod";
-import { generatePDF, sendWhatsAppMessage } from "../utils/pdf-generator";
-
+import { generatePDF } from "../utils/pdf-generator";
 import { prismaClient } from "..";
 
-// Validation schema for agent order creation
 const CreateAgentOrderSchema = z.object({
   customerId: z.number().optional(),
   customerName: z.string(),
@@ -20,28 +17,33 @@ const CreateAgentOrderSchema = z.object({
   ),
   paymentMethod: z.enum(["CASH", "CARD", "BANK_TRANSFER"]),
   amountPaid: z.number().nonnegative(),
+  sendWhatsApp: z.boolean().default(false),
+  discountPercentage: z.number().min(0).max(100).default(0) // Add discount percentage
 });
 
 export const createAgentOrder = async (req: Request, res: Response) => {
   try {
     const validatedData = CreateAgentOrderSchema.parse(req.body);
+    console.log("validated data:", validatedData);
     
     // Get the agent's branch (assuming agent is logged in)
     const agent = await prismaClient.user.findUnique({
       where: { id: req.user.id },
       include: { agentBranches: true }
     });
+    console.log("agent:", agent);
     
     if (!agent || !agent.agentBranches) {
       return res.status(403).json({ message: "User is not an agent or not assigned to a branch" });
     }
     
-    const branchId = agent.agentBranches.id;// Assuming agent's branchId is stored in the user object
+    const branchId = agent.agentBranches.id;
 
     // Fetch the branch to ensure it exists
     const branch = await prismaClient.branch.findUnique({
       where: { id: branchId },
     });
+    console.log("branch:", branch);
     
     if (!branch) {
       return res.status(404).json({ message: "Branch not found" });
@@ -52,6 +54,7 @@ export const createAgentOrder = async (req: Request, res: Response) => {
     const products = await prismaClient.product.findMany({
       where: { id: { in: productIds } },
     });
+    console.log("products:", products);
 
     if (products.length !== productIds.length) {
       return res.status(400).json({ message: "One or more products not found" });
@@ -82,6 +85,8 @@ export const createAgentOrder = async (req: Request, res: Response) => {
       } else {
         // Create a new user with a temporary password
         const tempPassword = Math.random().toString(36).slice(-8);
+        console.log("tempPassword:", tempPassword);
+        console.log("phone number:", validatedData.customerPhone);
         const newUser = await prismaClient.user.create({
           data: {
             name: validatedData.customerName,
@@ -95,38 +100,53 @@ export const createAgentOrder = async (req: Request, res: Response) => {
       }
     }
 
-    // Create the order
-    const order = await prismaClient.order.create({
-      data: {
-        userId: userId,
-        branchId: branchId,
-        netAmount: totalAmount,
-        address: validatedData.address,
-        status: "PAYMENT_DONE", // Since payment is handled in-store
-        products: {
-          create: validatedData.items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-          })),
+   // Calculate subtotal (before discount)
+const subtotalAmount = validatedData.items.reduce((total, item) => {
+  const product = productMap[item.productId];
+  return total + (Number(product.price) * item.quantity);
+}, 0);
+
+// Calculate discount amount
+const discountAmount = subtotalAmount * (validatedData.discountPercentage / 100);
+
+// Calculate final total after discount
+const finalAmount = subtotalAmount - discountAmount;
+
+// Create the order
+const order = await prismaClient.order.create({
+  data: {
+    userId: userId,
+    branchId: branchId,
+    subtotalAmount: subtotalAmount, // Store original subtotal
+    discountPercentage: validatedData.discountPercentage, // Store discount percentage
+    discountAmount: discountAmount, // Store calculated discount amount
+    netAmount: finalAmount, // Store final amount after discount
+    address: validatedData.address,
+    status: "PAYMENT_DONE",
+    products: {
+      create: validatedData.items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+    },
+    events: {
+      create: [
+        {
+          status: "PAYMENT_DONE",
         },
-        events: {
-          create: [
-            {
-              status: "PAYMENT_DONE",
-            },
-          ],
-        },
-      },
+      ],
+    },
+  },
+  include: {
+    products: {
       include: {
-        products: {
-          include: {
-            product: true,
-          },
-        },
-        user: true,
-        branch: true,
+        product: true,
       },
-    });
+    },
+    user: true,
+    branch: true,
+  },
+});
 
     // Update branch product quantities
     await Promise.all(
@@ -152,20 +172,14 @@ export const createAgentOrder = async (req: Request, res: Response) => {
       amountPaid: validatedData.amountPaid,
     });
 
-    // Send WhatsApp message with receipt
-    await sendWhatsAppMessage({
-      to: validatedData.customerPhone,
-      message: `Thank you for your purchase at ${branch.name}! Here's your receipt.`,
-      attachment: {
-        filename: `receipt-${order.id}.pdf`,
-        content: pdfBuffer,
-      },
-    });
+    // Convert buffer to base64 for frontend
+    const pdfBase64 = (pdfBuffer as Buffer).toString('base64');
 
     res.status(201).json({
       message: "Order created successfully",
       order,
-      receiptSent: true,
+      receiptPdf: pdfBase64,
+      sendWhatsApp: validatedData.sendWhatsApp
     });
   } catch (error) {
     console.error("Error creating agent order:", error);
@@ -175,6 +189,7 @@ export const createAgentOrder = async (req: Request, res: Response) => {
     });
   }
 };
+
 
 export const getAgentBranchProducts = async (req: Request, res: Response) => {
   try {
