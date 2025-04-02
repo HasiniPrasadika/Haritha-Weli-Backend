@@ -7,6 +7,8 @@ export const SignUpSchema = z.object({
     phoneNumber: z.string()
 })
 
+
+
 export const ForgetPasswordSchema = z.object({
     email: z.string()
 })
