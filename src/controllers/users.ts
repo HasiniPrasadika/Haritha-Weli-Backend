@@ -241,3 +241,62 @@ export const getAgentBranch = async (req: Request, res: Response) => {
         throw new BadRequestsException('Error fetching agent branch', ErrorCode.INTERNAL_EXCEPTION);
     }
 }
+
+export const getRepBranch = async (req: Request, res: Response) => {
+    const userId = +req.params.userId; // Convert to number
+    
+    if (!userId || isNaN(userId)) {
+        throw new BadRequestsException('Invalid user ID', ErrorCode.INVALID_USER_ID);
+    }
+
+    try {
+        // First check if the user exists and is an agent
+        const user = await prismaClient.user.findFirst({
+            where: {
+                id: userId
+            }
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found', ErrorCode.USER_NOT_FOUND);
+        }
+
+        if (user.role !== 'REP') {
+            return res.json({ 
+                success: false, 
+                message: 'User is not a rep' 
+            });
+        }
+
+        // Get the branch where the user is assigned as a rep
+        const branch = await prismaClient.branch.findFirst({
+            where: {
+                salesRepId: userId
+            },
+            select: {
+                id: true,
+                name: true
+            }
+        });
+
+        if (!branch) {
+            return res.json({ 
+                success: false, 
+                message: 'Rep is not assigned to any branch' 
+            });
+        }
+
+        return res.json({
+            success: true,
+            branchId: branch.id,
+            branchName: branch.name
+        });
+
+    } catch (error) {
+        if (error instanceof NotFoundException) {
+            throw error;
+        }
+        console.error(error);
+        throw new BadRequestsException('Error fetching rep branch', ErrorCode.INTERNAL_EXCEPTION);
+    }
+}

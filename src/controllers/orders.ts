@@ -4,6 +4,7 @@ import { NotFoundException } from "../exceptions/not-found";
 import { ErrorCode } from "../exceptions/root";
 import md5 from "crypto-js/md5";
 import { PAYHERE_MERCHANT_ID, PAYHERE_SECRET } from "../secrets";
+import { notifyAdminAboutOrder } from "./whatsapp";
 
 export const checkout = async (req: Request, res: Response) => {
   const { branchId } = req.body;
@@ -186,6 +187,8 @@ export const paymentSuccess = async (req: Request, res: Response) => {
         branchId: branchId,
       },
     });
+     // Step 7: Send WhatsApp notification to admin
+     await notifyAdminAboutOrder(order);
 
 
     res.status(200).json(order);
@@ -416,7 +419,11 @@ export const getOrdersByBranch = async (req: Request, res: Response) => {
       where: { branchId: Number(branchId) }, // Convert branchId to a number
       include: {
         user: true, // Include user details
-        products: true, // Include ordered products
+        products: {
+          include: {
+            product: true // Include product details
+          }
+        }, // Include ordered products
       },
     });
 

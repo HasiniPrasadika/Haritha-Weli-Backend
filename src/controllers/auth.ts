@@ -470,6 +470,48 @@ export const forgotPassword = async (
 export const me = async (req: Request, res: Response) => {
   res.json(req.user);
 };
+export const validateResetToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { token, email } = req.query;
+    
+    if (!token || !email || typeof token !== 'string' || typeof email !== 'string') {
+      return res.status(400).json({ 
+        message: "Invalid request parameters", 
+        errorCode: ErrorCode.INTERNAL_EXCEPTION
+      });
+    }
+
+    const user = await prismaClient.user.findUnique({ where: { email: email } });
+    
+    if (!user || !user.passwordResetToken || !user.passwordResetExpires) {
+      return res.status(400).json({ 
+        message: "Invalid or expired reset token!", 
+        errorCode: ErrorCode.INVALID_OR_EXPIRED_RESET_TOKEN 
+      });
+    }
+
+    // Hash the provided token to compare with stored hashed token
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    
+    if (
+      hashedToken !== user.passwordResetToken ||
+      user.passwordResetExpires < new Date()
+    ) {
+      return res.status(400).json({ 
+        message: "Invalid or expired reset token!", 
+        errorCode: ErrorCode.INVALID_OR_EXPIRED_RESET_TOKEN 
+      });
+    }
+    
+    return res.status(200).json({ valid: true });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const removeAccount = async (req: Request, res: Response) => {
   try {

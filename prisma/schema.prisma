@@ -45,7 +45,7 @@ model User {
   email String @unique
   password String
   phoneNumber String
-  productImage String?
+  userImage String?
   role Role @default(USER)
   defaultShippingAddress Int?
   defaultBillingAddress Int?  
