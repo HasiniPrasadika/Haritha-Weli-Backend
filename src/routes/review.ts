@@ -7,10 +7,10 @@ import { createReview, deleteReview, getAllReviews, getReviewsByOrder, getReview
 const reviewRoutes:Router = Router()
 
 reviewRoutes.post('/',[authMiddleware], errorHandler(createReview))
-reviewRoutes.get('/',[authMiddleware], errorHandler(getAllReviews))
+reviewRoutes.get('/', errorHandler(getAllReviews))
 reviewRoutes.put('/:id', [authMiddleware], errorHandler(updateReview))
-reviewRoutes.get('/order/:orderId',[authMiddleware], errorHandler(getReviewsByOrder))
-reviewRoutes.get('/product/:productId',[authMiddleware], errorHandler(getReviewsByProduct))
+reviewRoutes.get('/order/:orderId', errorHandler(getReviewsByOrder))
+reviewRoutes.get('/product/:productId', errorHandler(getReviewsByProduct))
 reviewRoutes.delete('/:id', [authMiddleware], errorHandler(deleteReview))
 
 
