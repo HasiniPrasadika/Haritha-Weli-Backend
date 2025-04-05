@@ -62,7 +62,7 @@ model User {
 
   createdStockRequests StockRequest[] @relation("StockRequestCreator")
   approvedStockRequests StockRequest[] @relation("StockRequestApprover")
-
+visits Visit[] @relation(name: "SalesRepVisits")
   addresses Address[]
   cartItems CartItem[]
   orders Order[]
@@ -151,7 +151,7 @@ model Order {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+visits Visit[]
   products OrderProduct[]
   events OrderEvent[]
   reviews Review[]
@@ -209,6 +209,7 @@ model Branch {
   products BranchProduct[]
   users User[] @relation("BranchUsers")
   orders Order[]
+  visits Visit[]
   
 
   @@map("branches")
@@ -292,4 +293,31 @@ model Review {
   
   @@unique([productId, orderId, userId])
   @@map("reviews")
+}
+
+// Add this model to your existing schema.prisma file
+
+model Visit {
+  id Int @id @default(autoincrement())
+  
+  branchId Int
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  salesRepId Int
+  salesRep User @relation("SalesRepVisits",fields: [salesRepId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  orderId Int?
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  
+  customerName String
+  address String
+  contactNumber String
+  purposeOfVisit String
+  customerSignature String? // We'll store the signature as a data URL
+  
+  visitDate DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("visits")
 }
