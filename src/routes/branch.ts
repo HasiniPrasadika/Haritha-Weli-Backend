@@ -7,6 +7,7 @@ import { errorHandler } from "../error-handler";
 import { addProductsToBranch, assignAgent, assignRep, createBranch, deleteBranch, getBranchDetails, listAssignedProducts, listBranches, listUnassignedProducts, removeAgentFromBranch, removeProductFromBranch, removeRepFromBranch, updateBranch, updateBranchStock } from "../controllers/branch";
 import agentMiddleware from "../middlewares/agent";
 import adminAgentMiddleware from "../middlewares/admin-agent";
+import adminAgentRepMiddleware from "../middlewares/admin-agent-rep";
 
 
 const branchRoutes:Router = Router()
@@ -19,8 +20,8 @@ branchRoutes.get('/unassigned-products/:branchId', [authMiddleware, adminMiddlew
 branchRoutes.get('/assigned-products/:branchId', errorHandler(listAssignedProducts));
 branchRoutes.get('/details/:branchId', [authMiddleware], errorHandler(getBranchDetails));
 branchRoutes.post('/products', [authMiddleware, adminMiddleware], errorHandler(addProductsToBranch))
-branchRoutes.delete("/remove-product", [authMiddleware, adminAgentMiddleware], errorHandler(removeProductFromBranch));
-branchRoutes.post('/stock', [authMiddleware, adminAgentMiddleware], errorHandler(updateBranchStock))
+branchRoutes.delete("/remove-product", [authMiddleware, adminAgentRepMiddleware], errorHandler(removeProductFromBranch));
+branchRoutes.post('/stock', [authMiddleware, adminAgentRepMiddleware], errorHandler(updateBranchStock))
 branchRoutes.post('/agent', [authMiddleware, adminMiddleware], errorHandler(assignAgent))
 branchRoutes.post('/rep', [authMiddleware, adminMiddleware], errorHandler(assignRep))
 branchRoutes.delete("/remove-rep/:branchId", [authMiddleware, adminMiddleware], errorHandler(removeRepFromBranch));

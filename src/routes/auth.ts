@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import { addAgent, addSalesRep, changePassword, deleteAgent, deleteSalesRep, editAgent, editSalesRep, forgotPassword, googleAuth, login, me, removeAccount, resetPassword, signup } from '../controllers/auth'
+import { addAgent, addSalesRep, changePassword, deleteAgent, deleteSalesRep, editAgent, editSalesRep, forgotPassword, googleAuth, login, me, removeAccount, resetPassword, signup, validateResetToken } from '../controllers/auth'
 import { errorHandler } from '../error-handler'
 import authMiddleware from '../middlewares/auth'
 import adminMiddleware from '../middlewares/admin'
@@ -31,6 +31,6 @@ authRoutes.post('/reset-password', errorHandler(resetPassword))
 
 //Change Password Functionalities
 authRoutes.post('/change-password', authMiddleware, errorHandler(changePassword))
-
+authRoutes.get('/validate-reset-token', errorHandler(validateResetToken));
 
 export default authRoutes
