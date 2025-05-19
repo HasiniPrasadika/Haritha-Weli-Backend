@@ -5,6 +5,7 @@ import { NotFoundException } from "../exceptions/not-found";
 import { ErrorCode } from "../exceptions/root";
 import { UnauthorizedException } from "../exceptions/unauthorized";
 import { z } from "zod";
+import { notifyAdminAboutStockRequest } from "./whatsapp";
 
 // Validation schemas
 const CreateStockRequestSchema = z.object({
@@ -113,6 +114,8 @@ export const createStockRequest = async (req: Request, res: Response, next: Next
         },
       },
     });
+
+    await notifyAdminAboutStockRequest(stockRequest);
 
     res.status(201).json({
       message: "Stock request created successfully",

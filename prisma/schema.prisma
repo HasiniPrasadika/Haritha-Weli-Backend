@@ -31,6 +31,11 @@ enum OrderEventStatus {
   REQUEST_REFUND
   REFUND_DONE
 }
+enum CallEventStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+}
 enum StockRequestStatus {
   PENDING
   APPROVED
@@ -151,12 +156,35 @@ model Order {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-visits Visit[]
+  visits Visit[]
   products OrderProduct[]
   events OrderEvent[]
   reviews Review[]
 
   @@map("orders")
+
+}
+
+model CallEvent {
+  id Int @id @default(autoincrement())
+  
+  agentName String
+  callerName String
+  callerNumber String
+  callSource String
+  productOfInterest String?
+  customerLocation String?
+  reasonForCall String
+  action String
+  followUpNeeded Boolean
+  followUpDate DateTime?
+  callStatus CallEventStatus
+  followUpStage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("callevents")
 
 }
 
