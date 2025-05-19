@@ -26,8 +26,6 @@ export enum ErrorCode {
     USER_IS_NOT_AN_REP = 1008,
     INVALID_USER_ID = 1009,
 
-
-
     UNPROCESSABLE_ENTITY = 2001,
 
     INTERNAL_EXCEPTION = 3001,
@@ -61,5 +59,7 @@ export enum ErrorCode {
   INSUFFICIENT_STOCK = 9006,
   INVALID_QUANTITY = 9007,
   NO_BRANCH_ASSIGNED = 9008,
+
+  CALL_NOT_FOUND = 10001,
    
 }
