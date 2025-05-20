@@ -20,3 +20,5 @@ export const ADMIN_WHATSAPP_NUMBER = process.env.ADMIN_WHATSAPP_NUMBER
 // META_WHATSAPP_ACCESS_TOKEN=your_meta_access_token
 // META_WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id
 // ADMIN_WHATSAPP_NUMBER=admin_phone_with_country_code (e.g., 911234567890)
+export const FB_PAGE_ID = process.env.FB_PAGE_ID
+export const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN
