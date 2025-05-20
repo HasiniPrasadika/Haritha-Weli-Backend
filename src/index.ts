@@ -4,6 +4,7 @@ import rootRouter from "./routes";
 import { PrismaClient } from "@prisma/client";
 import { errorMiddleware } from "./middlewares/errors";
 import cors from "cors";
+import facebookRoutes from "./routes/facebookRoutes";
 
 const app: Express = express();
 
@@ -30,6 +31,8 @@ app.use("/api", rootRouter);
 app.get("/", (req, res) => {
   res.status(200).send("Haritha Weli backend");
 });
+
+app.use("/api/facebook", facebookRoutes);
 
 // Test database connection before initializing Prisma client
 console.log("Attempting to connect to database...");
