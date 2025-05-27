@@ -32,18 +32,22 @@ export const createMasonBass = async (req: Request, res: Response) => {
     const masonbass = await prismaClient.masonBass.create({
       data: {
         bassName,
-      location,
-      phoneNumber,
-      description,
-      code,
-      bassDiscount,
+        location,
+        phoneNumber,
+        description,
+        code,
+        bassDiscount,
       },
     });
 
     res.status(201).json(masonbass);
-  } catch (error:any) {
+  } catch (error: any) {
     console.error("Error creating mason bass:", error);
-    res.json({ error: error.message });
+    if (error instanceof BadRequestsException) {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: error.message });
+    }
   }
 };
 
@@ -71,15 +75,32 @@ export const updateMasonBass = async (req: Request, res: Response) => {
       );
     }
 
+    // Check if the code already exists for a different mason bass
+    const duplicateCodeBass = await prismaClient.masonBass.findFirst({
+      where: {
+        code: code,
+        id: {
+          not: bassId, // Exclude the current record being updated
+        },
+      },
+    });
+
+    if (duplicateCodeBass) {
+      throw new BadRequestsException(
+        "Code already exists!",
+        ErrorCode.CODE_ALREADY_EXISTS
+      );
+    }
+
     const updatedBass = await prismaClient.masonBass.update({
       where: { id: bassId },
       data: {
         bassName,
-      location,
-      phoneNumber,
-      description,
-      code,
-      bassDiscount,
+        location,
+        phoneNumber,
+        description,
+        code,
+        bassDiscount,
       },
     });
 
@@ -88,6 +109,8 @@ export const updateMasonBass = async (req: Request, res: Response) => {
     console.error("Error updating mason bass:", error);
     if (error instanceof NotFoundException) {
       res.status(404).json({ error: error.message });
+    } else if (error instanceof BadRequestsException) {
+      res.status(400).json({ error: error.message });
     } else {
       res.status(500).json({ error: "Internal Server Error" });
     }
@@ -111,10 +134,9 @@ export const deleteMasonBass = async (req: Request, res: Response) => {
 };
 
 export const listMasonBass = async (req: Request, res: Response) => {
-
   const count = await prismaClient.masonBass.count();
   const masonbass = await prismaClient.masonBass.findMany({
-    skip: +req.query.skip  || 0,
+    skip: +req.query.skip || 0,
   });
   res.json({
     count,
