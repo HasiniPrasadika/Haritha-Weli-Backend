@@ -10,6 +10,7 @@ import branchOrderRoutes from "./branchorders";
 import reviewRoutes from "./review";
 import visitRoutes from "./repvisit";
 import callRoutes from "./callevent";
+import masonBassRoutes from "./masonbass";
 
 const rootRouter:Router = Router()
 
@@ -24,6 +25,7 @@ rootRouter.use('/agent', branchOrderRoutes)
 rootRouter.use('/reviews', reviewRoutes)
 rootRouter.use('/visits', visitRoutes)
 rootRouter.use('/call-event', callRoutes)
+rootRouter.use('/mason-bass', masonBassRoutes);
 
 export default rootRouter;
 

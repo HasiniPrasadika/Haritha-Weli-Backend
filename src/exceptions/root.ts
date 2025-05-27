@@ -61,5 +61,8 @@ export enum ErrorCode {
   NO_BRANCH_ASSIGNED = 9008,
 
   CALL_NOT_FOUND = 10001,
+
+  CODE_ALREADY_EXISTS = 11001,
+  BASS_NOT_FOUND = 11002
    
 }
