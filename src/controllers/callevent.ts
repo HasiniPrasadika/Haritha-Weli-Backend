@@ -2,9 +2,6 @@ import { Request, Response } from "express";
 import { prismaClient } from "..";
 import { NotFoundException } from "../exceptions/not-found";
 import { ErrorCode } from "../exceptions/root";
-import md5 from "crypto-js/md5";
-import { PAYHERE_MERCHANT_ID, PAYHERE_SECRET } from "../secrets";
-import { notifyAdminAboutOrder } from "./whatsapp";
 
 export const createCallEvent = async (req: Request, res: Response) => {
   console.log(req.body);
@@ -144,7 +141,7 @@ export const changeCallStatus = async (req: Request, res: Response) => {
       },
       data: {
         callStatus: req.body.callStatus,
-        followUpStage: req.body.followUpStage      
+        
 
       },
     });
