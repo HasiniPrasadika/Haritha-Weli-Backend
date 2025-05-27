@@ -117,6 +117,21 @@ model Product {
   @@map("products")
 }
 
+model MasonBass {
+  id Int @id @default(autoincrement())
+  bassName String
+  location String
+  phoneNumber String
+  description String?
+  code String
+  bassDiscount Decimal?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("mason_bass")
+}
+
 model CartItem {
   id Int @id @default(autoincrement())
 
