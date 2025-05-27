@@ -1,8 +1,8 @@
-import { prismaClient } from "..";
 import { Request, Response } from "express";
+import { prismaClient } from "..";
+import { BadRequestsException } from "../exceptions/bad_requests";
 import { NotFoundException } from "../exceptions/not-found";
 import { ErrorCode } from "../exceptions/root";
-import { BadRequestsException } from "../exceptions/bad_requests";
 
 export const createMasonBass = async (req: Request, res: Response) => {
   try {
@@ -124,9 +124,10 @@ export const listMasonBass = async (req: Request, res: Response) => {
 
 export const getBassById = async (req: Request, res: Response) => {
   try {
+    const { code } = req.params;
     const bass = await prismaClient.masonBass.findFirstOrThrow({
       where: {
-        id: +req.params.id,
+        code: code,
       },
     });
     res.json(bass);
