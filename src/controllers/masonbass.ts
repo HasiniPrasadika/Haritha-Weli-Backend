@@ -121,3 +121,19 @@ export const listMasonBass = async (req: Request, res: Response) => {
     data: masonbass,
   });
 };
+
+export const getBassById = async (req: Request, res: Response) => {
+  try {
+    const bass = await prismaClient.masonBass.findFirstOrThrow({
+      where: {
+        id: +req.params.id,
+      },
+    });
+    res.json(bass);
+  } catch (err) {
+    throw new NotFoundException(
+      "Mason Bass Not Found",
+      ErrorCode.BASS_NOT_FOUND
+    );
+  }
+};
