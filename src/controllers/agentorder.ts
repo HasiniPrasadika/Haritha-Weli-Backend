@@ -23,7 +23,6 @@ const CreateAgentOrderSchema = z.object({
   bassCode: z.string().optional(),
 });
 
-
 export const createAgentOrder = async (req: Request, res: Response) => {
   try {
     const validatedData = CreateAgentOrderSchema.parse(req.body);
@@ -54,24 +53,6 @@ export const createAgentOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Branch not found" });
     }
 
-    // Handle bassCode discount if provided
-    let bassDiscount = 0;
-    let masonBass = null;
-    if (validatedData.bassCode) {
-      masonBass = await prismaClient.masonBass.findUnique({
-        where: { code: validatedData.bassCode },
-      });
-      
-      if (!masonBass) {
-        return res.status(400).json({ message: "Invalid bass code" });
-      }
-      
-      if (masonBass.bassDiscount) {
-        bassDiscount = Number(masonBass.bassDiscount);
-      }
-      console.log("Bass discount found:", bassDiscount);
-    }
-
     // Fetch products to validate and calculate total
     const productIds = validatedData.items.map((item) => item.productId);
     const products = await prismaClient.product.findMany({
@@ -91,6 +72,11 @@ export const createAgentOrder = async (req: Request, res: Response) => {
       return map;
     }, {});
 
+    // Calculate total amount
+    const totalAmount = validatedData.items.reduce((total, item) => {
+      const product = productMap[item.productId];
+      return total + Number(product.price) * item.quantity;
+    }, 0);
 
     // Create or get the customer
     let userId = validatedData.customerId;
@@ -126,34 +112,20 @@ export const createAgentOrder = async (req: Request, res: Response) => {
       return total + Number(product.price) * item.quantity;
     }, 0);
 
-    // Calculate total discount percentage (agent discount + bass discount)
-    const totalDiscountPercentage = validatedData.discountPercentage + bassDiscount;
-    
-    // Ensure total discount doesn't exceed 100%
-    const finalDiscountPercentage = Math.min(totalDiscountPercentage, 100);
-
     // Calculate discount amount
-    const discountAmount = subtotalAmount * (finalDiscountPercentage / 100);
+    const discountAmount =
+      subtotalAmount * (validatedData.discountPercentage / 100);
 
     // Calculate final total after discount
     const finalAmount = subtotalAmount - discountAmount;
 
-  console.log("Calculation breakdown:", {
-      subtotalAmount,
-      agentDiscountPercentage: validatedData.discountPercentage,
-      bassDiscountPercentage: bassDiscount,
-      totalDiscountPercentage,
-      finalDiscountPercentage,
-      discountAmount,
-      finalAmount
-    });
     // Create the order
     const order = await prismaClient.order.create({
       data: {
         userId: userId,
         branchId: branchId,
         subtotalAmount: subtotalAmount, // Store original subtotal
-        discountPercentage: finalDiscountPercentage, // Store discount percentage
+        discountPercentage: validatedData.discountPercentage, // Store discount percentage
         discountAmount: discountAmount, // Store calculated discount amount
         netAmount: finalAmount, // Store final amount after discount
         address: validatedData.address,
