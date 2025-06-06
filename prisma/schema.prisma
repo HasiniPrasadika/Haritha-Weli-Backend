@@ -62,12 +62,12 @@ model User {
   updatedAt DateTime @updatedAt
 
   agentBranches Branch? @relation("Agent")
-  salesRepBranches Branch? @relation("SalesRep")
+  salesRepBranches Branch[] @relation("SalesReps")
   branches Branch[] @relation("BranchUsers")
 
   createdStockRequests StockRequest[] @relation("StockRequestCreator")
   approvedStockRequests StockRequest[] @relation("StockRequestApprover")
-visits Visit[] @relation(name: "SalesRepVisits")
+  visits Visit[] @relation(name: "SalesRepVisits")
   addresses Address[]
   cartItems CartItem[]
   orders Order[]
@@ -242,8 +242,8 @@ model Branch {
   agentId Int? @unique
   agent User? @relation("Agent", fields: [agentId], references: [id], onUpdate: Cascade)
 
-  salesRepId Int? @unique
-  salesRep User? @relation("SalesRep", fields: [salesRepId], references: [id], onUpdate: Cascade)
+  salesRepId Int?
+  salesRep User? @relation("SalesReps", fields: [salesRepId], references: [id], onUpdate: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

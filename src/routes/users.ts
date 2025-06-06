@@ -2,7 +2,7 @@ import { Router } from "express";
 import { errorHandler } from "../error-handler";
 import authMiddleware from "../middlewares/auth";
 import adminMiddleware from "../middlewares/admin";
-import { addAddress, changeUserRole, deleteAddress, getAgentBranch, getRepBranch, getUserById, listAddress, listAgents, listReps, listUsers, updateUser } from "../controllers/users";
+import { addAddress, changeUserRole, deleteAddress, getAgentBranch, getRepBranches, getUserById, listAddress, listAgents, listReps, listUsers, updateUser } from "../controllers/users";
 
 const userRoutes:Router = Router()
 
@@ -16,6 +16,6 @@ userRoutes.get('/agent', [authMiddleware, adminMiddleware], errorHandler(listAge
 userRoutes.get('/rep', [authMiddleware, adminMiddleware], errorHandler(listReps))
 userRoutes.get('/:id', [authMiddleware], errorHandler(getUserById))
 userRoutes.get('/agent-branch/:userId', [authMiddleware], errorHandler(getAgentBranch))
-userRoutes.get('/rep-branch/:userId', [authMiddleware], errorHandler(getRepBranch))
+userRoutes.get('/rep-branch/:userId', [authMiddleware], errorHandler(getRepBranches))
 
 export default userRoutes

@@ -126,12 +126,12 @@ export const listReps = async (req:Request, res:Response) => {
     try {
         const reps = await prismaClient.user.findMany({
             where: {
-                role: 'REP' // Filter only agent users
+                role: 'REP'
             },
             include: {
-                salesRepBranches: {  // Fetch the branch where the agent is assigned
+                salesRepBranches: {
                     include: {
-                        agent: true  // Fetch sales representative assigned to that branch
+                        agent: true 
                     }
                 }
             },
@@ -242,19 +242,17 @@ export const getAgentBranch = async (req: Request, res: Response) => {
     }
 }
 
-export const getRepBranch = async (req: Request, res: Response) => {
+export const getRepBranches = async (req: Request, res: Response) => {
     const userId = +req.params.userId; // Convert to number
-    
+
     if (!userId || isNaN(userId)) {
         throw new BadRequestsException('Invalid user ID', ErrorCode.INVALID_USER_ID);
     }
 
     try {
-        // First check if the user exists and is an agent
-        const user = await prismaClient.user.findFirst({
-            where: {
-                id: userId
-            }
+        // First check if the user exists and is a REP
+        const user = await prismaClient.user.findUnique({
+            where: { id: userId }
         });
 
         if (!user) {
@@ -268,28 +266,34 @@ export const getRepBranch = async (req: Request, res: Response) => {
             });
         }
 
-        // Get the branch where the user is assigned as a rep
-        const branch = await prismaClient.branch.findFirst({
-            where: {
-                salesRepId: userId
-            },
-            select: {
-                id: true,
-                name: true
-            }
-        });
+        // Fetch all branches assigned to this rep using the relation table
+        const repBranches = await prismaClient.user.findUnique({
+  where: { id: userId },
+  include: {
+    salesRepBranches: {
+      select: {
+        id: true,
+        name: true
+      }
+    }
+  }
+});
 
-        if (!branch) {
-            return res.json({ 
-                success: false, 
-                message: 'Rep is not assigned to any branch' 
+        const branches = repBranches?.salesRepBranches.map(branch => ({
+  branchId: branch.id,
+  branchName: branch.name
+})) || [];
+
+        if (branches.length === 0) {
+            return res.json({
+                success: false,
+                message: 'No branches assigned to this rep'
             });
         }
 
         return res.json({
             success: true,
-            branchId: branch.id,
-            branchName: branch.name
+            branches
         });
 
     } catch (error) {
@@ -297,6 +301,6 @@ export const getRepBranch = async (req: Request, res: Response) => {
             throw error;
         }
         console.error(error);
-        throw new BadRequestsException('Error fetching rep branch', ErrorCode.INTERNAL_EXCEPTION);
+        throw new BadRequestsException('Error fetching rep branches', ErrorCode.INTERNAL_EXCEPTION);
     }
-}
+};
