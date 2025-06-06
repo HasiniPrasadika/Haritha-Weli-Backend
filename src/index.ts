@@ -10,7 +10,12 @@ const app: Express = express();
 
 app.use(
   cors({
-    origin: FRONTEND_URL,
+    origin: [
+    'http://localhost:3000',
+    'https://harithaweli.lk',
+    'https://www.harithaweli.lk'
+  ],
+  credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
    
