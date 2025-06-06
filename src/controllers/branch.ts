@@ -425,44 +425,46 @@ export const assignAgent = async (req: Request, res: Response) => {
 };
 
 export const assignRep = async (req: Request, res: Response) => {
-  let updatedBranch: Branch;
   const validatedData = AssignRepSchema.parse(req.body);
 
   const rep = await prismaClient.user.findUnique({
-    where: {
-      id: validatedData.repId,
-    },
+    where: { id: validatedData.repId },
   });
 
   if (!rep) {
     throw new NotFoundException("User not found", ErrorCode.USER_NOT_FOUND);
   }
+
   if (rep.role !== "REP") {
     throw new BadRequestsException(
-      "User is not an sales rep",
+      "User is not a sales rep",
       ErrorCode.USER_IS_NOT_AN_REP
     );
   }
 
-  // Check if the agent is already assigned to another branch
-  const existingAssignment = await prismaClient.branch.findFirst({
-    where: { salesRepId: validatedData.repId },
+  const branch = await prismaClient.branch.findUnique({
+    where: { id: validatedData.branchId },
   });
 
-  if (existingAssignment) {
+  if (!branch) {
+    throw new NotFoundException("Branch not found", ErrorCode.BRANCH_NOT_FOUND);
+  }
+
+  if (branch.salesRepId) {
     throw new BadRequestsException(
-      "Sales rep is already assigned to a branch",
-      ErrorCode.REP_ALREADY_ASSIGNED
+      "This branch is already assigned to a rep",
+      ErrorCode.BRANCH_ALREADY_ASSIGNED
     );
   }
 
-  updatedBranch = await prismaClient.branch.update({
+  const updatedBranch = await prismaClient.branch.update({
     where: { id: validatedData.branchId },
     data: { salesRepId: validatedData.repId },
   });
 
   res.json(updatedBranch);
 };
+
 
 // Remove Sales Representative from Branch
 export const removeRepFromBranch = async (req: Request, res: Response, next: NextFunction) => {
