@@ -59,20 +59,31 @@ export const notifyAdminAboutOrder = async (order: any): Promise<void> => {
       console.error('Admin WhatsApp number not configured');
       return;
     }
-    
-    // Ensure phone number is in international format (with country code)
+
     const formattedPhoneNumber = adminPhoneNumber.startsWith('+') 
-      ? adminPhoneNumber.substring(1) // Remove '+' if present
+      ? adminPhoneNumber.substring(1) 
       : adminPhoneNumber;
-    
-    const message = `New Order Placed!\n\nOrder ID: ${order.id}\nTotal Amount: ${order.netAmount}\nStatus: ${order.status}\nBranch ID: ${order.branchId}`;
-    
-    // Send the WhatsApp message to admin
+
+    const branchName = order.branch?.name || 'Unknown Branch';
+
+    // Generate product list with quantities
+    const productDetails = order.products
+      .map((p: any) => `- ${p.product.name} (x${p.quantity})`)
+      .join('\n');
+
+    const message = `🛒 *New Order Placed!*\n\n` +
+      `*Order ID:* ${order.id}\n` +
+      `*Branch:* ${branchName}\n` +
+      `*Total Amount:* ${order.netAmount}\n` +
+      `*Status:* ${order.status}\n\n` +
+      `📦 *Ordered Products:*\n${productDetails}`;
+
     await sendWhatsAppMessage(formattedPhoneNumber, message);
   } catch (error) {
     console.error('Error notifying admin about order:', error);
   }
 };
+
 
 export const notifyAdminAboutStockRequest = async (stockRequest: any): Promise<void> => {
   try {

@@ -11,6 +11,6 @@ masonBassRoutes.post('/',[authMiddleware, adminAgentMiddleware], errorHandler(cr
 masonBassRoutes.put('/:id',[authMiddleware, adminAgentMiddleware], errorHandler(updateMasonBass))
 masonBassRoutes.delete('/:id',[authMiddleware, adminAgentMiddleware], errorHandler(deleteMasonBass))
 masonBassRoutes.get('/', errorHandler(listMasonBass))
-masonBassRoutes.get('/:id',[authMiddleware, adminAgentMiddleware], errorHandler(getBassById))
+masonBassRoutes.get('/:code',[authMiddleware, adminAgentMiddleware], errorHandler(getBassById))
 
 export default masonBassRoutes
